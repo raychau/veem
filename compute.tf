@@ -11,7 +11,7 @@ resource "aws_security_group" "nginx_lb" {
     description = "network defaults for nginx application"
     vpc_id      = aws_vpc.veem.id
 
-    # Allow ingress of port 80 from provided Home IP address
+    # Allow ingress of port 80 from all Home IP addresses
     ingress {
         description      = "HTTP"
         from_port        = 80
@@ -20,7 +20,7 @@ resource "aws_security_group" "nginx_lb" {
         cidr_blocks      = ["0.0.0.0/0"]
     }
 
-    # Allow ingress of port 443 from provided Home IP address
+    # Allow ingress of port 443 from all Home IP addresses
     ingress {
         description      = "HTTPS"
         from_port        = 443
@@ -49,7 +49,7 @@ resource "aws_security_group" "nginx_instance" {
     description = "network defaults for nginx application"
     vpc_id      = aws_vpc.veem.id
 
-    # Default allow ingress from port 80
+    # Allow ingress to port 80 from Load Balancer
     ingress {
         description      = "HTTP"
         from_port        = 80
@@ -58,7 +58,7 @@ resource "aws_security_group" "nginx_instance" {
         security_groups  = [aws_security_group.nginx_lb.id]
     }
 
-    # Default allow ingress from port 443
+    # Allow ingress to port 443 from Load Balancer
     ingress {
         description      = "HTTPS"
         from_port        = 443
@@ -67,7 +67,7 @@ resource "aws_security_group" "nginx_instance" {
         security_groups  = [aws_security_group.nginx_lb.id]
     }
 
-    # Allow ingress of port 22 from provided Home IP address
+    # Allow ingress to port 22 from provided Home IP address
     ingress {
         description      = "SSH"
         from_port        = 22
