@@ -4,28 +4,29 @@
 #
 ##############################
 
+## The load balancer can be accessed only by the provided Home IP address
 # Create Nginx Load Balancer security group
 resource "aws_security_group" "nginx_lb" {
     name        = "nginx-lb-sg"
     description = "network defaults for nginx application"
     vpc_id      = aws_vpc.veem.id
 
-    # Default allow ingress from port 80
+    # Allow ingress of port 80 from provided Home IP address
     ingress {
         description      = "HTTP"
         from_port        = 80
         to_port          = 80
         protocol         = "tcp"
-        cidr_blocks      = ["0.0.0.0/0"]
+        cidr_blocks      = ["${var.home_ip_address}/32"]
     }
 
-    # Default allow ingress from port 443
+    # Allow ingress of port 443 from provided Home IP address
     ingress {
         description      = "HTTPS"
         from_port        = 443
         to_port          = 443
         protocol         = "tcp"
-        cidr_blocks      = ["0.0.0.0/0"]
+        cidr_blocks      = ["${var.home_ip_address}/32"]
     }
 
     # Default egress all
@@ -41,6 +42,7 @@ resource "aws_security_group" "nginx_lb" {
     }
 }
 
+## The instance itself can only be accessed by the Load Balancer
 # Create Nginx Instance security group
 resource "aws_security_group" "nginx_instance" {
     name        = "nginx-instance-sg"
