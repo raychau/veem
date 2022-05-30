@@ -5,6 +5,11 @@ variable "home_ip_address" {
 }
 
 # Access the NGINX application using the Load Balancer DNS record
-output "nginx_url" {
+output "nginx_lb_url" {
     value = aws_lb.nginx.dns_name
+}
+
+# Access the NGINX application using the Instance public IP
+output "nginx_instance_public_ip" {
+    value = aws_instance.nginx.public_ip
 }

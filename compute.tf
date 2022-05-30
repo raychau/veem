@@ -29,15 +29,6 @@ resource "aws_security_group" "nginx_lb" {
         cidr_blocks      = ["0.0.0.0/0"]
     }
 
-    # Allow ingress of port 22 from provided Home IP address
-    ingress {
-        description      = "SSH"
-        from_port        = 22
-        to_port          = 22
-        protocol         = "tcp"
-        cidr_blocks      = ["${var.home_ip_address}/32"]
-    }
-
     # Default egress all
     egress {
         from_port        = 0
@@ -76,6 +67,15 @@ resource "aws_security_group" "nginx_instance" {
         security_groups  = [aws_security_group.nginx_lb.id]
     }
 
+    # Allow ingress of port 22 from provided Home IP address
+    ingress {
+        description      = "SSH"
+        from_port        = 22
+        to_port          = 22
+        protocol         = "tcp"
+        cidr_blocks      = ["${var.home_ip_address}/32"]
+    }
+
     # Default egress all
     egress {
         from_port        = 0
@@ -105,14 +105,26 @@ data "aws_ami" "nginx" {
     owners = ["979382823631"]
 }
 
+# Create Key pair
+resource "aws_key_pair" "veem" {
+  key_name   = "veem-challenge"
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCSYofDSl6ztMtlP6rTS+oLi+8oVBVOJrbqgW+/PVANwP/u5QwmIed5mRymKOhHVsyHdGyJGPVC/cyyDzcFSdnPeLmkwlmA6HRN+rjtaleQ4WLxxJg+fiLY8UE9WYOd3HWTu+/BR9jojTKU7oHMwiM2wLWLiptRx9TJrIVeOe+6fI/S7yvsh2f8n2qUN5frAh+oDqEOVNhNmFp90k5oH/DZZ3z+6JjyNq40OC0CzkYcGkh2Vi9lLVcHqmSsUh3LXSbK331ZPT+tLSjkJFxMFSo12r2VHrH2tJoQlPU7wpRYdTWlOex3SCJIl5uYwZVb3SI6zcjS7lClV0sZkojvK78l"
+}
+
 # Create Instance using Bitnami nginx AMI
 resource "aws_instance" "nginx" {
-    ami             = data.aws_ami.nginx.id
-    instance_type   = "t3.micro"
-    security_groups = [aws_security_group.nginx_instance.id]
+    ami                         = data.aws_ami.nginx.id
+    instance_type               = "t3.micro"
+    security_groups             = [aws_security_group.nginx_instance.id]
+
+    # Associate ephemeral public IP address for SSH
+    associate_public_ip_address = true
 
     # Arbitrarily associated with Public Subnet A
-    subnet_id       = aws_subnet.public_a.id
+    subnet_id                   = aws_subnet.public_a.id
+
+    # Key pair
+    key_name = aws_key_pair.veem.key_name
 
     tags = {
         "Name" = "nginx"
